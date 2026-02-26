@@ -32,27 +32,27 @@ class NavDrawer extends ConsumerWidget {
       backgroundColor: Colors.white, // ✅ WHITE DRAWER
       child: Column(
         children: [
-          // ── Header ─────────────────────────────
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.fromLTRB(10, 52, 0, 24),
-            child: Row(
-              children: [
-                Image.asset(
-                  'assets/images/sjit_tech.png',
-                  width: 200,
-                  height: 50,
-                  fit: BoxFit.contain,
-                ),
-              ],
-            ),
-          ),
+          // ── Header ────────────────────────────
 
           // ── Nav Items ─────────────────────────────
           Expanded(
             child: ListView(
               padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
               children: [
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.fromLTRB(10, 52, 0, 24),
+                  child: Row(
+                    children: [
+                      Image.asset(
+                        'assets/images/sjit_tech.png',
+                        width: 200,
+                        height: 50,
+                        fit: BoxFit.contain,
+                      ),
+                    ],
+                  ),
+                ),
                 ..._items.map((item) {
                   final isActive = activeScreen == item.$2;
                   return _NavTile(

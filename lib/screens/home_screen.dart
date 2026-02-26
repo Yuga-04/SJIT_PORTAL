@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../providers/auth_provider.dart';
 import '../theme/app_theme.dart';
-import '../widgets/animated_banner.dart';
 import '../widgets/nav_drawer.dart';
 import 'login_screen.dart';
+import '../contents/home_content.dart'; // ← split file
+import '../contents/profile_content.dart'; // ← split file
 
 // ── Current active screen name provider ─────────────────────────────────────
 final activeScreenProvider = StateProvider<String>((ref) => 'Home');
@@ -20,7 +21,6 @@ class HomeScreen extends ConsumerWidget {
     final activeScreen = ref.watch(activeScreenProvider);
     final scaffoldKey = GlobalKey<ScaffoldState>();
 
-    // White status bar icons when appbar is white
     SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
@@ -50,15 +50,14 @@ class HomeScreen extends ConsumerWidget {
       backgroundColor: Colors.white,
       elevation: 1,
       shadowColor: Colors.black12,
-      leadingWidth: 56,
-      toolbarHeight: 56,
+      leadingWidth: 30,
+      toolbarHeight: 50,
       leading: IconButton(
         icon: const Icon(Icons.menu, color: AppTheme.primaryDark, size: 26),
         onPressed: () => scaffoldKey.currentState?.openDrawer(),
       ),
       title: Row(
         children: [
-          // Bigger college logo
           Image.asset(
             'assets/images/sjit_tech.png',
             width: 125,
@@ -70,7 +69,6 @@ class HomeScreen extends ConsumerWidget {
         ],
       ),
       actions: [
-        // Screen name pushed to the right — before avatar
         Center(
           child: Text(
             activeScreen,
@@ -82,8 +80,6 @@ class HomeScreen extends ConsumerWidget {
           ),
         ),
         const SizedBox(width: 15),
-
-        // User avatar
         GestureDetector(
           onTap: () => _showUserSheet(context, ref, auth),
           child: Container(
@@ -92,7 +88,7 @@ class HomeScreen extends ConsumerWidget {
             height: 40,
             child: ClipOval(
               child: Image.asset(
-                'assets/images/profile.png', // ← your profile avatar filename
+                'assets/images/profile.png',
                 fit: BoxFit.contain,
               ),
             ),
@@ -106,7 +102,9 @@ class HomeScreen extends ConsumerWidget {
   Widget _buildBody(String screen) {
     switch (screen) {
       case 'Home':
-        return _HomeContent();
+        return const HomeContent(); // ← home_content.dart
+      case 'Profile':
+        return const ProfileContent(); // ← profile_content.dart
       default:
         return _ComingSoonContent(screen);
     }
@@ -187,61 +185,9 @@ class HomeScreen extends ConsumerWidget {
   }
 }
 
-// ── Home content ───────────────────────────────────────────────────────────────
-class _HomeContent extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        children: [
-          SizedBox(height: 20),
-          Container(
-            width: double.infinity,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(14),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
-                  blurRadius: 20,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-            ),
-            child: Column(
-              children: [
-                ClipRRect(
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(14),
-                  ),
-                  child: const AnimatedBanner(),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 20,
-                    horizontal: 16,
-                  ),
-                  child: Text(
-                    'Welcome to SJIT Student Portal',
-                    style: GoogleFonts.poppins(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                      color: AppTheme.primaryDark,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ],
-            ),
-          ).animate().fadeIn(duration: 500.ms).slideY(begin: -0.1, end: 0),
-        ],
-      ),
-    );
-  }
-}
-
-// ── Coming soon placeholder for other screens ──────────────────────────────────
+// ════════════════════════════════════════════════════════════════════════════
+//  COMING SOON PLACEHOLDER
+// ════════════════════════════════════════════════════════════════════════════
 class _ComingSoonContent extends StatelessWidget {
   final String screen;
   const _ComingSoonContent(this.screen);
@@ -284,8 +230,6 @@ class _ComingSoonContent extends StatelessWidget {
 
   IconData _iconFor(String screen) {
     switch (screen) {
-      case 'Profile':
-        return Icons.person_outline;
       case 'Attendance':
         return Icons.calendar_today_outlined;
       case 'Marks':
