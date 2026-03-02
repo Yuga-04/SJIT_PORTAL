@@ -4,10 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_theme.dart';
 import '../widgets/nav_drawer.dart';
-import '../contents/attendance_content.dart';
+import '../contents/feedback_content.dart';
 
-class AttendanceScreen extends ConsumerWidget {
-  const AttendanceScreen({super.key});
+class FeedbackScreen extends ConsumerWidget {
+  const FeedbackScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -23,13 +23,16 @@ class AttendanceScreen extends ConsumerWidget {
     return Scaffold(
       key: scaffoldKey,
       backgroundColor: AppTheme.primaryDark,
-      appBar: _buildAppBar(scaffoldKey),
+      appBar: _buildAppBar(context, scaffoldKey),
       drawer: const NavDrawer(),
-      body: const AttendanceContent(),
+      body: const FeedbackContent(),
     );
   }
 
-  PreferredSizeWidget _buildAppBar(GlobalKey<ScaffoldState> scaffoldKey) {
+  PreferredSizeWidget _buildAppBar(
+    BuildContext context,
+    GlobalKey<ScaffoldState> scaffoldKey,
+  ) {
     return AppBar(
       backgroundColor: Colors.white,
       elevation: 1,
@@ -55,7 +58,7 @@ class AttendanceScreen extends ConsumerWidget {
       actions: [
         Center(
           child: Text(
-            'Attendance',
+            'Feedback',
             style: GoogleFonts.poppins(
               fontSize: 17,
               fontWeight: FontWeight.w700,
@@ -72,9 +75,9 @@ class AttendanceScreen extends ConsumerWidget {
             child: Image.asset(
               'assets/images/profile.png',
               fit: BoxFit.contain,
-              errorBuilder: (_, __, ___) => const CircleAvatar(
+              errorBuilder: (_, __, ___) => CircleAvatar(
                 backgroundColor: AppTheme.accentBlue,
-                child: Icon(Icons.person, color: Colors.white, size: 22),
+                child: const Icon(Icons.person, color: Colors.white, size: 22),
               ),
             ),
           ),
