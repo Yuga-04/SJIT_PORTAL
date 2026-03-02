@@ -3,66 +3,104 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_theme.dart';
 
-// ── Sample data model ────────────────────────────────────────────────────────
+// ── Data model ────────────────────────────────────────────────────────────────
 class SubjectMark {
   final String code;
   final String name;
-  final String marks; // String to allow "null" values
-
-  const SubjectMark({
-    required this.code,
-    required this.name,
-    required this.marks,
-  });
+  final String marks;
+  const SubjectMark({required this.code, required this.name, required this.marks});
 }
 
-// ── Mock data per semester/exam ───────────────────────────────────────────────
-const Map<int, Map<String, List<SubjectMark>>> _marksData = {
-  1: {
-    'Model-1': [
-      SubjectMark(code: 'CY4104', name: 'Engineering Chemistry', marks: '52'),
-      SubjectMark(code: 'GE4106', name: 'Engineering Graphics', marks: '75'),
-      SubjectMark(
-          code: 'GE4109',
-          name: 'Problem Solving and Programming in C',
-          marks: 'null'),
-      SubjectMark(code: 'GE4151', name: 'Heritage of Tamil', marks: '79'),
-      SubjectMark(
-          code: 'HS4101', name: 'Communicative English', marks: '67'),
-      SubjectMark(
-          code: 'MA4102', name: 'Engineering Mathematics', marks: '75'),
-      SubjectMark(code: 'PH4103', name: 'Engineering Physics', marks: '80'),
+// ── Subject list per semester ─────────────────────────────────────────────────
+// Replace MarksService.fetch() body with a real HTTP call when your API is ready.
+class MarksService {
+  static final Map<int, List<String>> _subjects = {
+    1: [
+      'CY4104|Engineering Chemistry',
+      'GE4106|Engineering Graphics',
+      'GE4109|Problem Solving and Programming in C',
+      'GE4151|Heritage of Tamil',
+      'HS4101|Communicative English',
+      'MA4102|Engineering Mathematics',
+      'PH4103|Engineering Physics',
     ],
-    'Model-2': [
-      SubjectMark(code: 'CY4104', name: 'Engineering Chemistry', marks: '61'),
-      SubjectMark(code: 'GE4106', name: 'Engineering Graphics', marks: '80'),
-      SubjectMark(
-          code: 'GE4109',
-          name: 'Problem Solving and Programming in C',
-          marks: '70'),
-      SubjectMark(code: 'GE4151', name: 'Heritage of Tamil', marks: '85'),
-      SubjectMark(
-          code: 'HS4101', name: 'Communicative English', marks: '72'),
-      SubjectMark(
-          code: 'MA4102', name: 'Engineering Mathematics', marks: '68'),
-      SubjectMark(code: 'PH4103', name: 'Engineering Physics', marks: '77'),
+    2: [
+      'MA4201|Mathematics II',
+      'PH4202|Engineering Physics II',
+      'CS4201|Programming in C++',
+      'EE4201|Basic Electrical Engineering',
+      'ME4201|Engineering Mechanics',
+      'HS4201|Technical English',
     ],
-    'Model-3': [
-      SubjectMark(code: 'CY4104', name: 'Engineering Chemistry', marks: '58'),
-      SubjectMark(code: 'GE4106', name: 'Engineering Graphics', marks: '82'),
-      SubjectMark(
-          code: 'GE4109',
-          name: 'Problem Solving and Programming in C',
-          marks: '74'),
-      SubjectMark(code: 'GE4151', name: 'Heritage of Tamil', marks: '88'),
-      SubjectMark(
-          code: 'HS4101', name: 'Communicative English', marks: '76'),
-      SubjectMark(
-          code: 'MA4102', name: 'Engineering Mathematics', marks: '71'),
-      SubjectMark(code: 'PH4103', name: 'Engineering Physics', marks: '83'),
+    3: [
+      'MA6351|Transforms and Partial Differential Equations',
+      'CS6301|Programming and Data Structures II',
+      'CS6302|Database Management Systems',
+      'CS6303|Computer Architecture',
+      'CS6304|Analog and Digital Communication',
+      'CS6305|Theory of Computation',
     ],
-  },
-};
+    4: [
+      'MA6461|Probability and Queueing Theory',
+      'CS6401|Operating Systems',
+      'CS6402|Design and Analysis of Algorithms',
+      'CS6403|Software Engineering',
+      'CS6404|Compiler Design',
+      'CS6405|Computer Networks',
+    ],
+    5: [
+      'CS6501|Internet Programming',
+      'CS6502|Object Oriented Analysis and Design',
+      'CS6503|Theory of Computation',
+      'CS6504|Computer Graphics',
+      'CS6505|Automata and Complexity Theory',
+    ],
+    6: [
+      'CS6601|Distributed Systems',
+      'CS6602|Data Warehousing and Data Mining',
+      'CS6603|Total Quality Management',
+      'CS6604|Digital Image Processing',
+      'CS6605|Pattern Recognition and Image Analysis',
+    ],
+    7: [
+      'CS6701|Cryptography and Network Security',
+      'CS6702|Graph Theory and Applications',
+      'CS6703|Grid and Cloud Computing',
+      'CS6001|C# and .Net Programming',
+      'CS6002|Embedded Systems',
+    ],
+    8: [
+      'CS6811|Project Work',
+      'CS6812|Professional Ethics in Engineering',
+      'CS6813|Entrepreneurship Development',
+    ],
+  };
+
+  static const List<String> exams = ['Model-1', 'Model-2', 'Model-3'];
+
+  /// Simulates an API call. Swap the body here to call your real endpoint.
+  static Future<List<SubjectMark>> fetch({
+    required int sem,
+    required String model,
+  }) async {
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    final subjects = _subjects[sem] ?? [];
+    final modelIdx = exams.indexOf(model);
+
+    return subjects.asMap().entries.map((e) {
+      final idx = e.key;
+      final parts = e.value.split('|');
+      // Deterministic score so it stays consistent on re-render
+      final score = 45 + ((sem * 11 + modelIdx * 7 + idx * 5) % 36);
+      return SubjectMark(
+        code: parts[0],
+        name: parts[1],
+        marks: '$score',
+      );
+    }).toList();
+  }
+}
 
 // ════════════════════════════════════════════════════════════════════════════
 class MarksContent extends StatefulWidget {
@@ -73,24 +111,40 @@ class MarksContent extends StatefulWidget {
 }
 
 class _MarksContentState extends State<MarksContent> {
-  int _selectedSem = 1;
-  String _selectedExam = 'Model-1';
+  int _sem = 1;
+  String _exam = 'Model-1';
 
-  static const List<String> _exams = ['Model-1', 'Model-2', 'Model-3'];
+  List<SubjectMark> _marks = [];
+  bool _loading = true;
+  String? _error;
 
-  List<SubjectMark> get _currentMarks =>
-      _marksData[_selectedSem]?[_selectedExam] ?? [];
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
 
+  Future<void> _load() async {
+    setState(() { _loading = true; _error = null; });
+    try {
+      final data = await MarksService.fetch(sem: _sem, model: _exam);
+      if (mounted) setState(() { _marks = data; _loading = false; });
+    } catch (e) {
+      if (mounted) setState(() { _error = e.toString(); _loading = false; });
+    }
+  }
+
+  void _setSem(int s) { setState(() => _sem = s); _load(); }
+  void _setExam(String e) { setState(() => _exam = e); _load(); }
+
+  // ── Build ──────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 10),
-
-          // ── Card container ─────────────────────────────────────────────────
           Container(
             width: double.infinity,
             decoration: BoxDecoration(
@@ -98,7 +152,7 @@ class _MarksContentState extends State<MarksContent> {
               borderRadius: BorderRadius.circular(14),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.25),
+                  color: Colors.black.withOpacity(0.22),
                   blurRadius: 20,
                   offset: const Offset(0, 8),
                 ),
@@ -107,9 +161,18 @@ class _MarksContentState extends State<MarksContent> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ── Header ───────────────────────────────────────────────────
-                _buildHeader(),
-
+                // Title
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 22, 20, 18),
+                  child: Text(
+                    'Marks Report',
+                    style: GoogleFonts.poppins(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.primaryDark,
+                    ),
+                  ),
+                ),
                 const Divider(height: 1, color: Color(0xFFE5E7EB)),
 
                 Padding(
@@ -117,174 +180,159 @@ class _MarksContentState extends State<MarksContent> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // ── Sem selector ─────────────────────────────────────
-                      _buildLabel('Sem:'),
+                      _sectionLabel('Sem:'),
                       const SizedBox(height: 12),
-                      _buildSemSelector(),
+                      _semSelector(),
                       const SizedBox(height: 24),
-
-                      // ── Exam selector ────────────────────────────────────
-                      _buildLabel('Exam:'),
+                      _sectionLabel('Exam:'),
                       const SizedBox(height: 12),
-                      _buildExamSelector(),
+                      _examSelector(),
                       const SizedBox(height: 28),
-
-                      // ── Marks table ──────────────────────────────────────
-                      _buildLabel('MARKS:'),
+                      _sectionLabel('MARKS:'),
                       const SizedBox(height: 12),
-                      _buildMarksTable(),
+                      _tableArea(),
                       const SizedBox(height: 8),
                     ],
                   ),
                 ),
               ],
             ),
-          )
-              .animate()
-              .fadeIn(duration: 500.ms)
-              .slideY(begin: -0.05, end: 0),
-
+          ).animate().fadeIn(duration: 500.ms).slideY(begin: -0.05, end: 0),
           const SizedBox(height: 24),
         ],
       ),
     );
   }
 
-  // ── Header ─────────────────────────────────────────────────────────────────
-  Widget _buildHeader() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 22, 20, 18),
-      child: Text(
-        'Marks Report',
+  // ── Helpers ────────────────────────────────────────────────────────────────
+  Widget _sectionLabel(String t) => Text(
+        t,
         style: GoogleFonts.poppins(
-          fontSize: 22,
-          fontWeight: FontWeight.w700,
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
           color: AppTheme.primaryDark,
         ),
-      ),
-    );
-  }
+      );
 
-  // ── Section label ──────────────────────────────────────────────────────────
-  Widget _buildLabel(String text) {
-    return Text(
-      text,
-      style: GoogleFonts.poppins(
-        fontSize: 14,
-        fontWeight: FontWeight.w600,
-        color: AppTheme.primaryDark,
-        letterSpacing: 0.3,
-      ),
-    );
-  }
-
-  // ── Semester selector (1–8) ────────────────────────────────────────────────
-  Widget _buildSemSelector() {
-    return Wrap(
-      spacing: 10,
-      runSpacing: 10,
-      children: List.generate(8, (i) {
-        final sem = i + 1;
-        final selected = sem == _selectedSem;
-        return GestureDetector(
-          onTap: () => setState(() => _selectedSem = sem),
-          child: AnimatedContainer(
-            duration: 200.ms,
-            width: 50,
-            height: 50,
-            decoration: BoxDecoration(
-              color: selected ? AppTheme.primaryDark : Colors.white,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(
-                color: selected ? AppTheme.primaryDark : const Color(0xFFCBD5E1),
-                width: 1.5,
-              ),
-              boxShadow: selected
-                  ? [
-                      BoxShadow(
-                        color: AppTheme.primaryDark.withOpacity(0.3),
+  // Sem tiles 1–8
+  Widget _semSelector() => Wrap(
+        spacing: 10,
+        runSpacing: 10,
+        children: List.generate(8, (i) {
+          final s = i + 1;
+          final on = s == _sem;
+          return GestureDetector(
+            onTap: () => _setSem(s),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              width: 50,
+              height: 50,
+              decoration: BoxDecoration(
+                color: on ? AppTheme.primaryDark : Colors.white,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: on ? AppTheme.primaryDark : const Color(0xFFCBD5E1),
+                  width: 1.5,
+                ),
+                boxShadow: on
+                    ? [BoxShadow(
+                        color: AppTheme.primaryDark.withOpacity(0.28),
                         blurRadius: 8,
                         offset: const Offset(0, 3),
-                      )
-                    ]
-                  : [],
-            ),
-            child: Center(
+                      )]
+                    : [],
+              ),
+              alignment: Alignment.center,
               child: Text(
-                '$sem',
+                '$s',
                 style: GoogleFonts.poppins(
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
-                  color: selected ? Colors.white : AppTheme.primaryDark,
+                  color: on ? Colors.white : AppTheme.primaryDark,
                 ),
               ),
             ),
-          ),
-        );
-      }),
-    );
-  }
+          );
+        }),
+      );
 
-  // ── Exam selector ─────────────────────────────────────────────────────────
-  Widget _buildExamSelector() {
-    return Wrap(
-      spacing: 10,
-      runSpacing: 10,
-      children: _exams.map((exam) {
-        final selected = exam == _selectedExam;
-        return GestureDetector(
-          onTap: () => setState(() => _selectedExam = exam),
-          child: AnimatedContainer(
-            duration: 200.ms,
-            padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
-            decoration: BoxDecoration(
-              color: selected ? AppTheme.primaryDark : Colors.white,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(
-                color: selected ? AppTheme.primaryDark : const Color(0xFFCBD5E1),
-                width: 1.5,
-              ),
-              boxShadow: selected
-                  ? [
-                      BoxShadow(
-                        color: AppTheme.primaryDark.withOpacity(0.3),
+  // Exam chips
+  Widget _examSelector() => Wrap(
+        spacing: 10,
+        runSpacing: 10,
+        children: MarksService.exams.map((ex) {
+          final on = ex == _exam;
+          return GestureDetector(
+            onTap: () => _setExam(ex),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
+              decoration: BoxDecoration(
+                color: on ? AppTheme.primaryDark : Colors.white,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: on ? AppTheme.primaryDark : const Color(0xFFCBD5E1),
+                  width: 1.5,
+                ),
+                boxShadow: on
+                    ? [BoxShadow(
+                        color: AppTheme.primaryDark.withOpacity(0.28),
                         blurRadius: 8,
                         offset: const Offset(0, 3),
-                      )
-                    ]
-                  : [],
-            ),
-            child: Text(
-              exam,
-              style: GoogleFonts.poppins(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: selected ? Colors.white : AppTheme.primaryDark,
+                      )]
+                    : [],
+              ),
+              child: Text(
+                ex,
+                style: GoogleFonts.poppins(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: on ? Colors.white : AppTheme.primaryDark,
+                ),
               ),
             ),
-          ),
-        );
-      }).toList(),
-    );
-  }
+          );
+        }).toList(),
+      );
 
-  // ── Marks table ────────────────────────────────────────────────────────────
-  Widget _buildMarksTable() {
-    if (_currentMarks.isEmpty) {
+  // ── Table area ─────────────────────────────────────────────────────────────
+  Widget _tableArea() {
+    if (_loading) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 40),
+          child: Column(
+            children: [
+              const CircularProgressIndicator(
+                color: AppTheme.primaryDark,
+                strokeWidth: 2.5,
+              ),
+              const SizedBox(height: 16),
+              Text('Fetching marks…',
+                  style: GoogleFonts.poppins(
+                      fontSize: 13, color: Colors.grey.shade400)),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (_error != null) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 32),
           child: Column(
             children: [
-              Icon(Icons.bar_chart_outlined,
-                  size: 48, color: Colors.grey.shade300),
+              Icon(Icons.error_outline, size: 48, color: Colors.red.shade200),
               const SizedBox(height: 12),
-              Text(
-                'No marks available',
-                style: GoogleFonts.poppins(
-                  fontSize: 14,
-                  color: Colors.grey.shade400,
-                ),
+              Text('Failed to load marks',
+                  style: GoogleFonts.poppins(
+                      fontSize: 14, color: Colors.red.shade300)),
+              const SizedBox(height: 12),
+              TextButton(
+                onPressed: _load,
+                child: Text('Retry',
+                    style: GoogleFonts.poppins(color: AppTheme.accentBlue)),
               ),
             ],
           ),
@@ -292,9 +340,28 @@ class _MarksContentState extends State<MarksContent> {
       );
     }
 
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(10),
-      child: Table(
+    if (_marks.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 40),
+          child: Column(
+            children: [
+              Icon(Icons.bar_chart_outlined,
+                  size: 48, color: Colors.grey.shade300),
+              const SizedBox(height: 12),
+              Text(
+                'No marks available for\nSem $_sem · $_exam',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.poppins(
+                    fontSize: 13, color: Colors.grey.shade400),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Table(
         columnWidths: const {
           0: FlexColumnWidth(3),
           1: FlexColumnWidth(1.2),
@@ -302,82 +369,69 @@ class _MarksContentState extends State<MarksContent> {
         border: TableBorder.all(
           color: const Color(0xFFD1D5DB),
           width: 1,
-          borderRadius: BorderRadius.circular(10),
         ),
         children: [
           // Header row
           TableRow(
-            decoration: const BoxDecoration(
-              color: AppTheme.primaryDark,
-            ),
+            decoration: const BoxDecoration(color: AppTheme.primaryDark),
             children: [
-              _tableHeaderCell('SUBJECTS'),
-              _tableHeaderCell('MARKS'),
+              _th('SUBJECTS'),
+              _th('MARKS'),
             ],
           ),
           // Data rows
-          ..._currentMarks.asMap().entries.map((entry) {
-            final idx = entry.key;
-            final item = entry.value;
-            final isEven = idx % 2 == 0;
+          ..._marks.asMap().entries.map((e) {
+            final even = e.key % 2 == 0;
+            final item = e.value;
+            final isNull = item.marks == 'null';
             return TableRow(
               decoration: BoxDecoration(
-                color: isEven ? Colors.white : const Color(0xFFF8FAFC),
+                color: even ? Colors.white : const Color(0xFFF8FAFC),
               ),
               children: [
-                _tableDataCell('${item.code} - ${item.name}'),
-                _tableMarksCell(item.marks),
+                _td('${item.code} - ${item.name}'),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 14, vertical: 12),
+                  child: Text(
+                    item.marks,
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: isNull
+                          ? Colors.grey.shade400
+                          : const Color(0xFF1E293B),
+                      fontStyle: isNull
+                          ? FontStyle.italic
+                          : FontStyle.normal,
+                    ),
+                  ),
+                ),
               ],
             );
           }),
         ],
-      ),
-    ).animate().fadeIn(duration: 400.ms, delay: 100.ms);
+      ).animate().fadeIn(duration: 350.ms);
   }
 
-  Widget _tableHeaderCell(String text) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      child: Text(
-        text,
-        style: GoogleFonts.poppins(
-          fontSize: 12,
-          fontWeight: FontWeight.w700,
-          color: Colors.white,
-          letterSpacing: 0.5,
-        ),
-      ),
-    );
-  }
+  Widget _th(String t) => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        child: Text(t,
+            style: GoogleFonts.poppins(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+              letterSpacing: 0.5,
+            )),
+      );
 
-  Widget _tableDataCell(String text) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      child: Text(
-        text,
-        style: GoogleFonts.poppins(
-          fontSize: 12,
-          fontWeight: FontWeight.w400,
-          color: const Color(0xFF1E293B),
-          height: 1.4,
-        ),
-      ),
-    );
-  }
-
-  Widget _tableMarksCell(String marks) {
-    final isNull = marks == 'null';
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      child: Text(
-        marks,
-        style: GoogleFonts.poppins(
-          fontSize: 12,
-          fontWeight: FontWeight.w500,
-          color: isNull ? Colors.grey.shade400 : const Color(0xFF1E293B),
-          fontStyle: isNull ? FontStyle.italic : FontStyle.normal,
-        ),
-      ),
-    );
-  }
+  Widget _td(String t) => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        child: Text(t,
+            style: GoogleFonts.poppins(
+              fontSize: 12,
+              color: const Color(0xFF1E293B),
+              height: 1.4,
+            )),
+      );
 }
