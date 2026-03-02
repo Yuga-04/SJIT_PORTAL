@@ -10,111 +10,92 @@ class NotesContent extends StatefulWidget {
 }
 
 class _NotesContentState extends State<NotesContent> {
-  String? _selectedSemester;
+  // ── State ──────────────────────────────────────────────────────────────────
+  String? _selectedYear;
+  int     _selectedSem  = 1;
   String? _selectedSubject;
-  String? _selectedUnit;
+  String? _selectedNotesType;
 
-  final List<String> _semesters = [
-    'Semester 1', 'Semester 2', 'Semester 3',
-    'Semester 4', 'Semester 5', 'Semester 6',
-    'Semester 7', 'Semester 8',
-  ];
+  // ── Data ───────────────────────────────────────────────────────────────────
+  static final List<String> _academicYears = List.generate(
+    13,
+    (i) {
+      final start = 2026 - i;
+      return '$start-${start + 1}';
+    },
+  );
 
-  final Map<String, List<String>> _subjectsBySemester = {
-    'Semester 1': ['Engineering Mathematics I', 'Engineering Physics', 'Engineering Chemistry'],
-    'Semester 2': ['Engineering Mathematics II', 'Basic Electrical Engineering', 'C Programming'],
-    'Semester 3': ['Data Structures', 'Digital Electronics', 'Discrete Mathematics'],
-    'Semester 4': ['Operating Systems', 'Computer Networks', 'Database Management'],
-    'Semester 5': ['Software Engineering', 'Web Technology', 'Compiler Design'],
-    'Semester 6': ['Machine Learning', 'Cloud Computing', 'Information Security'],
-    'Semester 7': ['Artificial Intelligence', 'Big Data Analytics', 'IoT'],
-    'Semester 8': ['Project Work', 'Elective I', 'Elective II'],
+  static const Map<int, List<String>> _subjectsBySem = {
+    1: ['CY4101-Engineering Mathematics I', 'CY4102-Engineering Physics',
+        'CY4103-C Programming', 'CY4104-Engineering Chemistry'],
+    2: ['CY4201-Engineering Mathematics II', 'CY4202-Basic Electrical Engineering',
+        'CY4203-Data Structures', 'CY4204-Digital Electronics'],
+    3: ['CY4301-Operating Systems', 'CY4302-Computer Networks',
+        'CY4303-Database Management', 'CY4304-Discrete Mathematics'],
+    4: ['CY4401-Design and Analysis of Algorithms', 'CY4402-Microprocessors',
+        'CY4403-Software Engineering', 'CY4404-Computer Architecture'],
+    5: ['CY4501-Web Technology', 'CY4502-Compiler Design',
+        'CY4503-Mobile Computing', 'CY4504-Object Oriented Programming'],
+    6: ['CY4601-Machine Learning', 'CY4602-Cloud Computing',
+        'CY4603-Information Security', 'CY4604-Big Data Analytics'],
+    7: ['CY4701-Artificial Intelligence', 'CY4702-IoT',
+        'CY4703-Deep Learning', 'CY4704-Natural Language Processing'],
+    8: ['CY4801-Project Work', 'CY4802-Elective I', 'CY4803-Elective II'],
   };
 
-  final List<String> _units = ['Unit 1', 'Unit 2', 'Unit 3', 'Unit 4', 'Unit 5'];
-
-  // Mock notes data — replace with real API data
-  final List<Map<String, String>> _mockNotes = [
-    {
-      'title': 'Introduction to Data Structures',
-      'unit': 'Unit 1',
-      'type': 'PDF',
-      'size': '2.4 MB',
-      'date': 'Jan 10, 2026',
-    },
-    {
-      'title': 'Arrays and Linked Lists',
-      'unit': 'Unit 1',
-      'type': 'PDF',
-      'size': '1.8 MB',
-      'date': 'Jan 15, 2026',
-    },
-    {
-      'title': 'Stacks and Queues',
-      'unit': 'Unit 2',
-      'type': 'PPT',
-      'size': '3.1 MB',
-      'date': 'Feb 2, 2026',
-    },
-    {
-      'title': 'Trees and Binary Trees',
-      'unit': 'Unit 3',
-      'type': 'PDF',
-      'size': '4.2 MB',
-      'date': 'Feb 18, 2026',
-    },
-    {
-      'title': 'Graph Algorithms',
-      'unit': 'Unit 4',
-      'type': 'PDF',
-      'size': '2.9 MB',
-      'date': 'Mar 1, 2026',
-    },
+  static const List<String> _notesTypes = [
+    'Class Notes',
+    'Question Bank',
+    'Previous University Questions',
+    'Model Keys',
+    'IAE Keys',
+    'Syllabus',
+    'Previous University Answers',
+    'Video Lectures',
   ];
 
-  List<String> get _subjects =>
-      _selectedSemester != null ? (_subjectsBySemester[_selectedSemester!] ?? []) : [];
+  // Mock notes result — replace with API
+  final List<Map<String, String>> _mockNotes = [
+    {'title': 'HCI Alan Dix.pdf',      'type': 'PDF'},
+    {'title': 'UNIT 4.docx.pdf',       'type': 'PDF'},
+    {'title': 'UNIT 2 NOTES',          'type': 'PDF'},
+    {'title': 'UNIT 3 NOTES',          'type': 'PDF'},
+    {'title': 'UNIT 4 NOTES',          'type': 'PDF'},
+    {'title': 'UNIT 5 NOTES',          'type': 'PDF'},
+    {'title': 'HCI Unit 1.pdf',        'type': 'PDF'},
+    {'title': 'HCI unit 2.pdf',        'type': 'PDF'},
+    {'title': 'Unit_3_Lex_Yacc',       'type': 'PDF'},
+    {'title': 'UNIT IV FDIP.pdf',      'type': 'PDF'},
+    {'title': 'Unit III FDIP.pptx',    'type': 'PPT'},
+    {'title': 'Unit IV part 1.pptx',   'type': 'PPT'},
+    {'title': 'Unit IV part 2.pptx',   'type': 'PPT'},
+  ];
 
-  List<Map<String, String>> get _filteredNotes {
-    if (_selectedSemester == null) return [];
-    return _mockNotes.where((note) {
-      if (_selectedUnit != null && note['unit'] != _selectedUnit) return false;
-      return true;
-    }).toList();
-  }
+  List<String> get _subjects => _subjectsBySem[_selectedSem] ?? [];
 
+  bool get _canSearch =>
+      _selectedYear != null &&
+      _selectedSubject != null &&
+      _selectedNotesType != null;
+
+  bool _searched = false;
+
+  // ── Build ──────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const SizedBox(height: 12),
-
-          // Title
-          Center(
-            child: Text(
-              'Study Notes',
-              style: GoogleFonts.poppins(
-                fontSize: 22,
-                fontWeight: FontWeight.w700,
-                color: Colors.white,
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
-
-          // Filter card
+          // White card
           Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: AppTheme.cardWhite,
-              borderRadius: BorderRadius.circular(16),
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(14),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.25),
+                  color: Colors.black.withValues(alpha: 0.2),
                   blurRadius: 20,
                   offset: const Offset(0, 8),
                 ),
@@ -123,325 +104,410 @@ class _NotesContentState extends State<NotesContent> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Filter Notes',
-                  style: GoogleFonts.poppins(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: AppTheme.primaryDark,
+                // ── Title ──────────────────────────────────────────────────
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+                  child: Text(
+                    'Notes Download',
+                    style: GoogleFonts.poppins(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.primaryDark,
+                    ),
                   ),
                 ),
-                const SizedBox(height: 16),
+                const Padding(
+                  padding: EdgeInsets.only(top: 10),
+                  child: Divider(height: 1, thickness: 1, color: Color(0xFFE5E7EB)),
+                ),
 
-                // Row 1: Semester + Subject
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildDropdown(
-                        label: 'Semester',
-                        value: _selectedSemester,
-                        items: _semesters,
-                        onChanged: (val) => setState(() {
-                          _selectedSemester = val;
+                // ── Form body ──────────────────────────────────────────────
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Academic Year
+                      _fieldLabel('Academic Year:'),
+                      const SizedBox(height: 8),
+                      _buildDropdown(
+                        width: 200,
+                        value: _selectedYear,
+                        hint: 'Select',
+                        items: _academicYears,
+                        onChanged: (v) => setState(() {
+                          _selectedYear    = v;
                           _selectedSubject = null;
-                          _selectedUnit = null;
+                          _searched        = false;
                         }),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: _buildDropdown(
-                        label: 'Subject',
-                        value: _selectedSubject,
-                        items: _subjects,
-                        onChanged: _subjects.isEmpty
-                            ? null
-                            : (val) => setState(() => _selectedSubject = val),
-                        hint: _selectedSemester == null ? 'Select semester first' : 'Select',
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 14),
+                      const SizedBox(height: 20),
 
-                // Row 2: Unit
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildDropdown(
-                        label: 'Unit',
-                        value: _selectedUnit,
-                        items: _units,
-                        onChanged: _selectedSubject == null
-                            ? null
-                            : (val) => setState(() => _selectedUnit = val),
-                        hint: _selectedSubject == null ? 'Select subject first' : 'Select',
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.only(top: 20),
-                        child: SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: _selectedSemester != null
-                                ? () => setState(() {})
-                                : null,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppTheme.accentBlue,
-                              disabledBackgroundColor: AppTheme.borderColor,
-                              padding: const EdgeInsets.symmetric(vertical: 14),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
+                      // Sem chips
+                      _fieldLabel('Sem :'),
+                      const SizedBox(height: 10),
+                      _buildSemChips(),
+                      const SizedBox(height: 20),
+
+                      // Subject + Notes Type (side by side)
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Subject
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _fieldLabel('Subject:'),
+                                const SizedBox(height: 8),
+                                _buildDropdown(
+                                  value: _selectedSubject,
+                                  hint: 'Select',
+                                  items: _subjects,
+                                  onChanged: _selectedYear == null
+                                      ? null
+                                      : (v) => setState(() {
+                                            _selectedSubject = v;
+                                            _searched        = false;
+                                          }),
+                                ),
+                              ],
                             ),
-                            child: Text(
-                              'SEARCH',
-                              style: GoogleFonts.poppins(
-                                fontWeight: FontWeight.w700,
-                                fontSize: 13,
-                                color: Colors.white,
-                                letterSpacing: 1,
-                              ),
+                          ),
+                          const SizedBox(width: 24),
+
+                          // Notes Type
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _fieldLabel('Notes Type:'),
+                                const SizedBox(height: 8),
+                                _buildDropdown(
+                                  value: _selectedNotesType,
+                                  hint: 'Select',
+                                  items: _notesTypes,
+                                  onChanged: _selectedSubject == null
+                                      ? null
+                                      : (v) => setState(() {
+                                            _selectedNotesType = v;
+                                            _searched          = false;
+                                          }),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+
+                      // Search button
+                      SizedBox(
+                        width: 160,
+                        child: ElevatedButton(
+                          onPressed: _canSearch
+                              ? () => setState(() => _searched = true)
+                              : null,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppTheme.accentBlue,
+                            disabledBackgroundColor: AppTheme.borderColor,
+                            padding: const EdgeInsets.symmetric(vertical: 13),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            elevation: 0,
+                          ),
+                          child: Text(
+                            'SEARCH',
+                            style: GoogleFonts.poppins(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 13,
+                              color: Colors.white,
+                              letterSpacing: 1,
                             ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ],
             ),
           ),
 
-          const SizedBox(height: 20),
-
-          // Notes list
-          if (_selectedSemester == null)
-            _buildEmptyState(
-              icon: Icons.menu_book_rounded,
-              message: 'Select a semester to browse notes',
-            )
-          else if (_filteredNotes.isEmpty)
-            _buildEmptyState(
-              icon: Icons.search_off_rounded,
-              message: 'No notes found for selected filters',
-            )
-          else ...[
-            Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: Text(
-                '${_filteredNotes.length} note${_filteredNotes.length > 1 ? 's' : ''} found',
-                style: GoogleFonts.poppins(
-                  fontSize: 13,
-                  color: Colors.white60,
-                ),
-              ),
-            ),
-            ..._filteredNotes.map((note) => _buildNoteCard(note)),
+          // ── Results ─────────────────────────────────────────────────────
+          if (_searched) ...[
+            const SizedBox(height: 20),
+            if (_mockNotes.isEmpty)
+              _emptyState(Icons.search_off_rounded, 'No notes found')
+            else
+              _buildFileTable(),
+          ] else ...[
+            const SizedBox(height: 32),
+            _emptyState(Icons.menu_book_rounded,
+                'Select all fields to browse notes'),
           ],
-
-          const SizedBox(height: 24),
         ],
       ),
     );
   }
 
+  // ── Sem chips ──────────────────────────────────────────────────────────────
+  Widget _buildSemChips() {
+    return Row(
+      children: List.generate(8, (i) {
+        final sem      = i + 1;
+        final isActive = sem == _selectedSem;
+
+        return Padding(
+          padding: const EdgeInsets.only(right: 8),
+          child: GestureDetector(
+            onTap: () => setState(() {
+              _selectedSem     = sem;
+              _selectedSubject = null;
+              _searched        = false;
+            }),
+            child: Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: isActive ? AppTheme.primaryDark : Colors.transparent,
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(
+                  color: isActive
+                      ? AppTheme.primaryDark
+                      : const Color(0xFFD1D5DB),
+                  width: 1.5,
+                ),
+              ),
+              child: Center(
+                child: Text(
+                  '$sem',
+                  style: GoogleFonts.poppins(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: isActive ? Colors.white : AppTheme.primaryDark,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      }),
+    );
+  }
+
+  // ── Dropdown ───────────────────────────────────────────────────────────────
   Widget _buildDropdown({
-    required String label,
     required String? value,
     required List<String> items,
     required ValueChanged<String?>? onChanged,
     String hint = 'Select',
+    double? width,
   }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
+    final disabled = onChanged == null;
+
+    Widget dropdown = Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        color: disabled ? const Color(0xFFF9FAFB) : Colors.white,
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: const Color(0xFFD1D5DB)),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: value,
+          isExpanded: true,
+          hint: Text(
+            hint,
+            style: GoogleFonts.poppins(
+              fontSize: 13,
+              color: AppTheme.textGrey,
+            ),
+          ),
+          icon: Icon(
+            Icons.keyboard_arrow_down,
+            color: disabled ? AppTheme.textGrey : AppTheme.primaryDark,
+            size: 20,
+          ),
           style: GoogleFonts.poppins(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
+            fontSize: 13,
             color: AppTheme.primaryDark,
           ),
-        ),
-        const SizedBox(height: 6),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          decoration: BoxDecoration(
-            color: onChanged == null ? AppTheme.inputBg : Colors.white,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: AppTheme.borderColor),
-          ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              value: value,
-              hint: Text(
-                hint,
-                style: GoogleFonts.poppins(
-                  fontSize: 13,
-                  color: AppTheme.textGrey,
-                ),
-              ),
-              isExpanded: true,
-              icon: Icon(Icons.keyboard_arrow_down,
-                  color: onChanged == null ? AppTheme.textGrey : AppTheme.primaryDark,
-                  size: 20),
-              style: GoogleFonts.poppins(
-                fontSize: 13,
-                color: AppTheme.primaryDark,
-              ),
-              dropdownColor: Colors.white,
-              borderRadius: BorderRadius.circular(8),
-              onChanged: onChanged,
-              items: items
-                  .map((item) => DropdownMenuItem(
-                        value: item,
-                        child: Text(item,
-                            style: GoogleFonts.poppins(fontSize: 13)),
-                      ))
-                  .toList(),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildNoteCard(Map<String, String> note) {
-    final isPdf = note['type'] == 'PDF';
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppTheme.cardWhite,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.15),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          // File type icon
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: isPdf
-                  ? const Color(0xFFFFEEEE)
-                  : const Color(0xFFEEF0FF),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Center(
-              child: Text(
-                note['type']!,
-                style: GoogleFonts.poppins(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w800,
-                  color: isPdf ? Colors.red.shade600 : AppTheme.accentBlue,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 14),
-
-          // Note info
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  note['title']!,
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.primaryDark,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    _chip(note['unit']!),
-                    const SizedBox(width: 6),
-                    Text(
-                      '${note['size']} · ${note['date']}',
+          dropdownColor: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          onChanged: onChanged,
+          selectedItemBuilder: (context) => items
+              .map((item) => Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      item,
+                      overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.poppins(
-                        fontSize: 11,
-                        color: AppTheme.textGrey,
+                        fontSize: 13,
+                        color: AppTheme.primaryDark,
                       ),
                     ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-
-          // Download button
-          GestureDetector(
-            onTap: () {
-              // TODO: implement download
-            },
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: AppTheme.accentBlue.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(
-                Icons.download_rounded,
-                color: AppTheme.accentBlue,
-                size: 22,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _chip(String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(
-        color: AppTheme.accentBlue.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Text(
-        label,
-        style: GoogleFonts.poppins(
-          fontSize: 10,
-          fontWeight: FontWeight.w600,
-          color: AppTheme.accentBlue,
+                  ))
+              .toList(),
+          items: items
+              .map((item) => DropdownMenuItem(
+                    value: item,
+                    child: Text(
+                      item,
+                      style: GoogleFonts.poppins(fontSize: 13),
+                    ),
+                  ))
+              .toList(),
         ),
       ),
     );
+
+    if (width != null) {
+      return SizedBox(width: width, child: dropdown);
+    }
+    return dropdown;
   }
 
-  Widget _buildEmptyState({required IconData icon, required String message}) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 40),
+  // ── File table (matches screenshot: dark header + blue link rows) ──────────
+  Widget _buildFileTable() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xFFD1D5DB)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(8),
         child: Column(
           children: [
-            Icon(icon, size: 56, color: Colors.white24),
-            const SizedBox(height: 12),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: GoogleFonts.poppins(
-                fontSize: 14,
-                color: Colors.white38,
+            // Dark navy header
+            Container(
+              width: double.infinity,
+              color: AppTheme.primaryDark,
+              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+              child: Text(
+                'File Name',
+                style: GoogleFonts.poppins(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
               ),
             ),
+            // File rows
+            ...List.generate(_mockNotes.length, (i) {
+              final note = _mockNotes[i];
+              final isEven = i % 2 == 0;
+              return GestureDetector(
+                onTap: () {
+                  // TODO: open / download file
+                },
+                child: Container(
+                  width: double.infinity,
+                  color: isEven ? Colors.white : const Color(0xFFF8F9FF),
+                  padding: const EdgeInsets.symmetric(
+                      vertical: 11, horizontal: 16),
+                  child: Row(
+                    children: [
+                      // File type icon
+                      _fileIcon(note['type'] ?? 'PDF'),
+                      const SizedBox(width: 10),
+                      // Filename as blue link
+                      Expanded(
+                        child: Text(
+                          note['title']!,
+                          style: GoogleFonts.poppins(
+                            fontSize: 13,
+                            color: AppTheme.primaryDark,
+                            fontWeight: FontWeight.w500,
+                            decoration: TextDecoration.underline,
+                            decorationColor: AppTheme.primaryDark,
+                          ),
+                        ),
+                      ),
+                      // Download icon
+                      Icon(
+                        Icons.download_rounded,
+                        size: 18,
+                        color: AppTheme.textGrey,
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }),
           ],
         ),
       ),
     );
   }
+
+  Widget _fileIcon(String type) {
+    final isPdf  = type.toUpperCase() == 'PDF';
+    final isPpt  = type.toUpperCase() == 'PPT' || type.toUpperCase() == 'PPTX';
+    final isDoc  = type.toUpperCase() == 'DOC' || type.toUpperCase() == 'DOCX';
+
+    Color bg;
+    Color fg;
+    if (isPdf)       { bg = const Color(0xFFFFEEEE); fg = Colors.red.shade600; }
+    else if (isPpt)  { bg = const Color(0xFFFFF3EE); fg = Colors.orange.shade700; }
+    else if (isDoc)  { bg = const Color(0xFFEEF3FF); fg = Colors.blue.shade700; }
+    else             { bg = const Color(0xFFEEF5EE); fg = Colors.green.shade700; }
+
+    return Container(
+      width: 32,
+      height: 32,
+      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(5)),
+      child: Center(
+        child: Text(
+          type.toUpperCase().length > 3
+              ? type.toUpperCase().substring(0, 3)
+              : type.toUpperCase(),
+          style: GoogleFonts.poppins(
+            fontSize: 9,
+            fontWeight: FontWeight.w800,
+            color: fg,
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ── Helpers ────────────────────────────────────────────────────────────────
+  Widget _fieldLabel(String text) => Text(
+        text,
+        style: GoogleFonts.poppins(
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+          color: AppTheme.primaryDark,
+        ),
+      );
+
+  Widget _emptyState(IconData icon, String message) => Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 40),
+          child: Column(
+            children: [
+              Icon(icon, size: 56, color: Colors.white24),
+              const SizedBox(height: 12),
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  color: Colors.white38,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
 }
