@@ -1,6 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-// import '../theme/app_theme.dart';
+import '../theme/app_theme.dart';
+
+// ── Attendance status ────────────────────────────────────────────────────────
+enum AttendanceStatus { present, absent, leave, holiday }
+
+class DayAttendance {
+  final AttendanceStatus status;
+  final String? timeRange; // e.g. "08:00AM - 03:00PM"
+  final String? note;      // e.g. "OD"
+
+  const DayAttendance({
+    required this.status,
+    this.timeRange,
+    this.note,
+  });
+}
+
+// ── Constants ────────────────────────────────────────────────────────────────
+const Color _purple      = Color(0xFF6C63FF);
+const Color _sidebarBg   = Color(0xFF7C6FD0);
+const Color _sidebarDark = Color(0xFF5A4FBF);
+const Color _dotBlue     = Color(0xFF2196F3);
+const Color _dotGreen    = Color(0xFF4CAF50);
+const Color _dotRed      = Color(0xFFF44336);
+const Color _panelBg     = Color(0xFFF5F4FF);
 
 class AttendanceContent extends StatefulWidget {
   const AttendanceContent({super.key});
@@ -10,102 +34,99 @@ class AttendanceContent extends StatefulWidget {
 }
 
 class _AttendanceContentState extends State<AttendanceContent> {
-  static const Color purpleAccent = Color(0xFF6C63FF);
-  static const Color purpleLight  = Color(0xFFEDE9FF);
-  static const Color sidebarBg    = Color(0xFF7C6FD0);
+  int _year  = DateTime.now().year;
+  int _month = DateTime.now().month;
+  late DateTime _selected;
 
-  int _selectedYear  = 2026;
-  int _selectedMonth = 3; // March
-  DateTime _selectedDate = DateTime(2026, 3, 2);
-
-  // Mock events — replace with real data
-  final Map<String, List<String>> _events = {
-    '2026-3-10': ['Mathematics Class', 'Lab Session'],
-    '2026-3-15': ['Guest Lecture'],
-    '2026-3-20': ['Sports Day'],
+  // ── Mock data — replace with real API data ───────────────────────────────
+  // Key format: 'YYYY-M-D'
+  final Map<String, DayAttendance> _data = {
+    '2026-2-16': const DayAttendance(
+      status: AttendanceStatus.present,
+      timeRange: '08:00AM - 03:00PM',
+    ),
+    '2026-2-17': const DayAttendance(
+      status: AttendanceStatus.present,
+      timeRange: '08:00AM - 03:00PM',
+    ),
+    '2026-2-18': const DayAttendance(
+      status: AttendanceStatus.leave,
+      note: 'OD',
+    ),
+    '2026-2-19': const DayAttendance(
+      status: AttendanceStatus.present,
+      timeRange: '08:00AM - 03:00PM',
+    ),
+    '2026-2-20': const DayAttendance(
+      status: AttendanceStatus.present,
+      timeRange: '08:00AM - 03:00PM',
+    ),
   };
 
-  static const List<String> _months = [
-    'January','February','March','April','May','June',
-    'July','August','September','October','November','December',
+  static const _monthNames = [
+    'January', 'February', 'March',    'April',   'May',      'June',
+    'July',    'August',   'September','October',  'November', 'December',
   ];
+  static const _weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-  static const List<String> _weekDays = [
-    'Sun','Mon','Tue','Wed','Thu','Fri','Sat',
-  ];
-
-  List<String> get _eventsForSelected {
-    final key = '${_selectedYear}-${_selectedMonth}-${_selectedDate.day}';
-    return _events[key] ?? [];
-  }
-
-  String _formatSelectedDate() {
-    final months = [
-      'January','February','March','April','May','June',
-      'July','August','September','October','November','December',
-    ];
-    return '${months[_selectedDate.month - 1]} ${_selectedDate.day}, ${_selectedDate.year}';
-  }
-
-  int _daysInMonth(int year, int month) {
-    return DateTime(year, month + 1, 0).day;
-  }
-
-  int _firstWeekdayOfMonth(int year, int month) {
-    return DateTime(year, month, 1).weekday % 7; // 0=Sun
-  }
-
-  void _prevYear() => setState(() => _selectedYear--);
-  void _nextYear() => setState(() => _selectedYear++);
-
-  void _selectMonth(int month) {
-    setState(() {
-      _selectedMonth = month;
-      _selectedDate  = DateTime(_selectedYear, month, 1);
-    });
-  }
-
-  void _prevMonth() {
-    setState(() {
-      if (_selectedMonth == 1) { _selectedMonth = 12; _selectedYear--; }
-      else _selectedMonth--;
-      _selectedDate = DateTime(_selectedYear, _selectedMonth, 1);
-    });
-  }
-
-  void _nextMonth() {
-    setState(() {
-      if (_selectedMonth == 12) { _selectedMonth = 1; _selectedYear++; }
-      else _selectedMonth++;
-      _selectedDate = DateTime(_selectedYear, _selectedMonth, 1);
-    });
-  }
-
-  bool _isToday(int day) {
+  @override
+  void initState() {
+    super.initState();
     final now = DateTime.now();
-    return day == now.day && _selectedMonth == now.month && _selectedYear == now.year;
+    _selected = DateTime(_year, _month, now.day);
   }
 
-  bool _isSelected(int day) {
-    return day == _selectedDate.day &&
-        _selectedMonth == _selectedDate.month &&
-        _selectedYear == _selectedDate.year;
+  String _key(int y, int m, int d) => '$y-$m-$d';
+
+  int get _daysInMonth  => DateTime(_year, _month + 1, 0).day;
+  int get _firstWeekday => DateTime(_year, _month, 1).weekday % 7; // 0 = Sun
+
+  bool _isToday(int d) {
+    final n = DateTime.now();
+    return d == n.day && _month == n.month && _year == n.year;
   }
 
-  bool _hasEvent(int day) {
-    final key = '$_selectedYear-$_selectedMonth-$day';
-    return _events.containsKey(key);
-  }
+  bool _isSelected(int d) =>
+      d == _selected.day && _month == _selected.month && _year == _selected.year;
 
+  void _prevMonth() => setState(() {
+        if (_month == 1) {
+          _month = 12;
+          _year--;
+        } else {
+          _month--;
+        }
+        _selected = DateTime(_year, _month, 1);
+      });
+
+  void _nextMonth() => setState(() {
+        if (_month == 12) {
+          _month = 1;
+          _year++;
+        } else {
+          _month++;
+        }
+        _selected = DateTime(_year, _month, 1);
+      });
+
+  void _prevYear() => setState(() {
+        _year--;
+        _selected = DateTime(_year, _month, 1);
+      });
+
+  void _nextYear() => setState(() {
+        _year++;
+        _selected = DateTime(_year, _month, 1);
+      });
+
+  // ── Root build ─────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 12),
-          // Title
           Center(
             child: Text(
               'Attendance Report',
@@ -117,47 +138,49 @@ class _AttendanceContentState extends State<AttendanceContent> {
             ),
           ),
           const SizedBox(height: 20),
-
-          // Main card
-          Container(
-            width: double.infinity,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.25),
-                  blurRadius: 20,
-                  offset: const Offset(0, 8),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final totalWidth = constraints.maxWidth;
+              final sidebarW  = (totalWidth * 0.22).clamp(90.0, 120.0);
+              final panelW    = (totalWidth * 0.26).clamp(120.0, 160.0);
+              return Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.25),
+                      blurRadius: 20,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // ── Left sidebar ──────────────────────────────────────────
-                _buildSidebar(),
-
-                // ── Center calendar ───────────────────────────────────────
-                Expanded(child: _buildCalendar()),
-
-                // ── Right panel ───────────────────────────────────────────
-                _buildEventPanel(),
-              ],
-            ),
+                child: IntrinsicHeight(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _buildSidebar(sidebarW),
+                      Expanded(child: _buildCalendar()),
+                      _buildRightPanel(panelW),
+                    ],
+                  ),
+                ),
+              );
+            },
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 32),
         ],
       ),
     );
   }
 
-  // ── Sidebar ────────────────────────────────────────────────────────────────
-  Widget _buildSidebar() {
+  // ── Left sidebar ───────────────────────────────────────────────────────────
+  Widget _buildSidebar(double width) {
     return Container(
-      width: 110,
+      width: width,
       decoration: BoxDecoration(
-        color: sidebarBg,
+        color: _sidebarBg,
         borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(16),
           bottomLeft: Radius.circular(16),
@@ -165,7 +188,7 @@ class _AttendanceContentState extends State<AttendanceContent> {
       ),
       child: Column(
         children: [
-          // Year navigator
+          // Year navigator row
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 4),
             child: Row(
@@ -173,10 +196,11 @@ class _AttendanceContentState extends State<AttendanceContent> {
               children: [
                 GestureDetector(
                   onTap: _prevYear,
-                  child: const Icon(Icons.chevron_left, color: Colors.white, size: 20),
+                  child: const Icon(Icons.chevron_left,
+                      color: Colors.white, size: 20),
                 ),
                 Text(
-                  '$_selectedYear',
+                  '$_year',
                   style: GoogleFonts.poppins(
                     color: Colors.white,
                     fontWeight: FontWeight.w700,
@@ -185,27 +209,32 @@ class _AttendanceContentState extends State<AttendanceContent> {
                 ),
                 GestureDetector(
                   onTap: _nextYear,
-                  child: const Icon(Icons.chevron_right, color: Colors.white, size: 20),
+                  child: const Icon(Icons.chevron_right,
+                      color: Colors.white, size: 20),
                 ),
               ],
             ),
           ),
           // Month list
           ...List.generate(12, (i) {
-            final isActive = (i + 1) == _selectedMonth;
+            final active = (i + 1) == _month;
             return GestureDetector(
-              onTap: () => _selectMonth(i + 1),
+              onTap: () => setState(() {
+                _month    = i + 1;
+                _selected = DateTime(_year, i + 1, 1);
+              }),
               child: Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 7),
-                color: isActive ? const Color(0xFF5A4FBF) : Colors.transparent,
+                color: active ? _sidebarDark : Colors.transparent,
                 child: Center(
                   child: Text(
-                    _months[i],
+                    _monthNames[i],
                     style: GoogleFonts.poppins(
                       color: Colors.white,
                       fontSize: 12,
-                      fontWeight: isActive ? FontWeight.w700 : FontWeight.w400,
+                      fontWeight:
+                          active ? FontWeight.w700 : FontWeight.w400,
                     ),
                   ),
                 ),
@@ -220,113 +249,110 @@ class _AttendanceContentState extends State<AttendanceContent> {
 
   // ── Calendar ───────────────────────────────────────────────────────────────
   Widget _buildCalendar() {
-    final daysInMonth  = _daysInMonth(_selectedYear, _selectedMonth);
-    final startOffset  = _firstWeekdayOfMonth(_selectedYear, _selectedMonth);
-    final totalCells   = startOffset + daysInMonth;
-    final rows         = (totalCells / 7).ceil();
+    final days   = _daysInMonth;
+    final offset = _firstWeekday;
+    final rows   = ((offset + days) / 7).ceil();
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
       child: Column(
         children: [
-          // Month + year header + navigation
+          // Month navigation header
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               GestureDetector(
                 onTap: _prevMonth,
-                child: Icon(Icons.chevron_left, color: purpleAccent, size: 26),
+                child: Icon(Icons.chevron_left, color: _purple, size: 26),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 8),
               Text(
-                '${_months[_selectedMonth - 1].toUpperCase()} $_selectedYear',
+                '${_monthNames[_month - 1].toUpperCase()} $_year',
                 style: GoogleFonts.poppins(
-                  fontSize: 17,
+                  fontSize: 16,
                   fontWeight: FontWeight.w700,
-                  color: purpleAccent,
+                  color: _purple,
                   letterSpacing: 1.2,
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 8),
               GestureDetector(
                 onTap: _nextMonth,
-                child: Icon(Icons.chevron_right, color: purpleAccent, size: 26),
+                child: Icon(Icons.chevron_right, color: _purple, size: 26),
               ),
             ],
           ),
           const SizedBox(height: 16),
+
           // Weekday headers
           Row(
-            children: _weekDays.map((d) => Expanded(
-              child: Center(
-                child: Text(
-                  d,
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black54,
-                  ),
-                ),
-              ),
-            )).toList(),
+            children: _weekDays
+                .map((d) => Expanded(
+                      child: Center(
+                        child: Text(
+                          d,
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black54,
+                          ),
+                        ),
+                      ),
+                    ))
+                .toList(),
           ),
           const SizedBox(height: 8),
-          // Date grid
+
+          // Date grid rows
           ...List.generate(rows, (row) {
             return Padding(
-              padding: const EdgeInsets.only(bottom: 4),
+              padding: const EdgeInsets.only(bottom: 2),
               child: Row(
                 children: List.generate(7, (col) {
-                  final cellIndex = row * 7 + col;
-                  final day       = cellIndex - startOffset + 1;
-                  final valid     = day >= 1 && day <= daysInMonth;
+                  final idx  = row * 7 + col;
+                  final day  = idx - offset + 1;
+                  final valid = day >= 1 && day <= days;
 
-                  if (!valid) return const Expanded(child: SizedBox(height: 44));
+                  if (!valid) {
+                    return const Expanded(child: SizedBox(height: 52));
+                  }
 
                   final today    = _isToday(day);
                   final selected = _isSelected(day);
-                  final hasEvent = _hasEvent(day);
+                  final att      = _data[_key(_year, _month, day)];
 
                   return Expanded(
                     child: GestureDetector(
                       onTap: () => setState(() {
-                        _selectedDate = DateTime(_selectedYear, _selectedMonth, day);
+                        _selected = DateTime(_year, _month, day);
                       }),
                       child: Container(
-                        height: 44,
+                        height: 52,
                         margin: const EdgeInsets.all(2),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          border: today ? Border.all(color: purpleAccent, width: 1.5) : null,
-                          color: selected && !today ? purpleAccent : Colors.transparent,
+                          border: today
+                              ? Border.all(
+                                  color: Colors.black54, width: 1.5)
+                              : null,
+                          // no fill — matches screenshots
                         ),
-                        child: Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                '$day',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 13,
-                                  fontWeight: today || selected ? FontWeight.w700 : FontWeight.w400,
-                                  color: selected && !today
-                                      ? Colors.white
-                                      : today
-                                          ? purpleAccent
-                                          : Colors.black87,
-                                ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              '$day',
+                              style: GoogleFonts.poppins(
+                                fontSize: 13,
+                                fontWeight: today || selected
+                                    ? FontWeight.w700
+                                    : FontWeight.w400,
+                                color: Colors.black87,
                               ),
-                              if (hasEvent)
-                                Container(
-                                  width: 4,
-                                  height: 4,
-                                  decoration: BoxDecoration(
-                                    color: selected ? Colors.white : purpleAccent,
-                                    shape: BoxShape.circle,
-                                  ),
-                                ),
-                            ],
-                          ),
+                            ),
+                            const SizedBox(height: 2),
+                            if (att != null) _buildDots(att),
+                          ],
                         ),
                       ),
                     ),
@@ -341,98 +367,212 @@ class _AttendanceContentState extends State<AttendanceContent> {
     );
   }
 
-  // ── Right event panel ──────────────────────────────────────────────────────
-  Widget _buildEventPanel() {
-    final events = _eventsForSelected;
+  /// Blue dot = working day, Green/Red dot = present / leave
+  Widget _buildDots(DayAttendance att) {
+    final rightColor = att.status == AttendanceStatus.present
+        ? _dotGreen
+        : att.status == AttendanceStatus.leave ||
+                att.status == AttendanceStatus.absent
+            ? _dotRed
+            : Colors.grey;
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        _dot(_dotBlue),
+        const SizedBox(width: 3),
+        _dot(rightColor),
+      ],
+    );
+  }
+
+  Widget _dot(Color c) => Container(
+        width: 6,
+        height: 6,
+        decoration: BoxDecoration(color: c, shape: BoxShape.circle),
+      );
+
+  // ── Right panel ────────────────────────────────────────────────────────────
+  Widget _buildRightPanel(double width) {
+    final att     = _data[_key(_year, _month, _selected.day)];
+    final dateStr =
+        '${_monthNames[_selected.month - 1]} ${_selected.day}, ${_selected.year}';
 
     return Container(
-      width: 160,
+      width: width,
       decoration: BoxDecoration(
-        color: const Color(0xFFF5F4FF),
+        color: _panelBg,
         borderRadius: const BorderRadius.only(
           topRight: Radius.circular(16),
           bottomRight: Radius.circular(16),
         ),
-        border: Border(
-          left: BorderSide(color: Colors.grey.shade200),
-        ),
+        border: Border(left: BorderSide(color: Colors.grey.shade200)),
       ),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 20, 12, 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            _formatSelectedDate(),
+            dateStr,
             style: GoogleFonts.poppins(
               fontSize: 13,
               fontWeight: FontWeight.w700,
               color: Colors.black87,
             ),
           ),
-          const SizedBox(height: 12),
-          if (events.isEmpty)
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.grey.shade200),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      'No event for today.. so take a rest! 😊',
-                      style: GoogleFonts.poppins(
-                        fontSize: 11,
-                        color: Colors.black54,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            )
-          else
-            ...events.map((e) => Container(
-              margin: const EdgeInsets.only(bottom: 8),
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: purpleLight),
-                boxShadow: [
-                  BoxShadow(
-                    color: purpleAccent.withOpacity(0.08),
-                    blurRadius: 6,
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 4,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      color: purpleAccent,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      e,
-                      style: GoogleFonts.poppins(
-                        fontSize: 11,
-                        color: Colors.black87,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            )),
+          const SizedBox(height: 16),
+          if (att == null) _noEventBox() else _attendanceDetails(att),
         ],
       ),
     );
+  }
+
+  Widget _noEventBox() => Container(
+        padding:
+            const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.grey.shade200),
+        ),
+        child: Text(
+          'No event for today.. so take a rest! 😊',
+          style: GoogleFonts.poppins(
+            fontSize: 11,
+            color: Colors.black54,
+          ),
+        ),
+      );
+
+  Widget _attendanceDetails(DayAttendance att) {
+    final hasWorkingDay = att.timeRange != null;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // ── Working Day row (blue dot) ──────────────────────────────────
+        if (hasWorkingDay) ...[
+          IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Column(
+                  children: [
+                    const SizedBox(height: 4),
+                    _dot(_dotBlue),
+                    // Connector line down to next dot
+                    Expanded(
+                      child: Container(
+                        width: 1.5,
+                        color: Colors.grey.shade300,
+                        margin:
+                            const EdgeInsets.symmetric(vertical: 4),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Working Day',
+                        style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(4),
+                          border:
+                              Border.all(color: Colors.grey.shade300),
+                        ),
+                      child: Text(
+                          att.timeRange!,
+                          style: GoogleFonts.poppins(
+                            fontSize: 9,
+                            color: Colors.black54,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+
+        // ── Status row (green / red dot) ────────────────────────────────
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: _dot(_statusColor(att.status)),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    _statusLabel(att.status),
+                    style: GoogleFonts.poppins(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  if (att.note != null)
+                    Text(
+                      att.note!,
+                      style: GoogleFonts.poppins(
+                        fontSize: 11,
+                        color: Colors.black45,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Color _statusColor(AttendanceStatus s) {
+    switch (s) {
+      case AttendanceStatus.present:
+        return _dotGreen;
+      case AttendanceStatus.leave:
+      case AttendanceStatus.absent:
+        return _dotRed;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  String _statusLabel(AttendanceStatus s) {
+    switch (s) {
+      case AttendanceStatus.present:
+        return 'Present';
+      case AttendanceStatus.leave:
+        return 'Leave';
+      case AttendanceStatus.absent:
+        return 'Absent';
+      case AttendanceStatus.holiday:
+        return 'Holiday';
+    }
   }
 }
