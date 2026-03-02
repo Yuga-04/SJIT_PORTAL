@@ -9,6 +9,7 @@ import '../widgets/nav_drawer.dart';
 import 'login_screen.dart';
 import '../contents/home_content.dart'; // ← split file
 import '../contents/profile_content.dart'; // ← split file
+import '../contents/marks_content.dart'; // ← split file
 
 // ── Current active screen name provider ─────────────────────────────────────
 final activeScreenProvider = StateProvider<String>((ref) => 'Home');
@@ -105,6 +106,8 @@ class HomeScreen extends ConsumerWidget {
         return const HomeContent(); // ← home_content.dart
       case 'Profile':
         return const ProfileContent(); // ← profile_content.dart
+      case 'Marks':
+        return const MarksContent(); // ← marks_content.dart
       default:
         return _ComingSoonContent(screen);
     }
