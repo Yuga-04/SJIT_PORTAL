@@ -110,7 +110,7 @@ class HomeScreen extends ConsumerWidget {
       case 'Marks':
         return const MarksContent(); // ← marks_content.dart
       case 'Attendance':
-        return const AttendenceContent(); // ← attendance_content.dart
+        return const AttendanceContent(); // ← attendance_content.dart
       default:
         return _ComingSoonContent(screen);
     }
