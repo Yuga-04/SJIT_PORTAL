@@ -23,16 +23,13 @@ class AttendanceScreen extends ConsumerWidget {
     return Scaffold(
       key: scaffoldKey,
       backgroundColor: AppTheme.primaryDark,
-      appBar: _buildAppBar(context, scaffoldKey),
+      appBar: _buildAppBar(scaffoldKey),
       drawer: const NavDrawer(),
       body: const AttendanceContent(),
     );
   }
 
-  PreferredSizeWidget _buildAppBar(
-    BuildContext context,
-    GlobalKey<ScaffoldState> scaffoldKey,
-  ) {
+  PreferredSizeWidget _buildAppBar(GlobalKey<ScaffoldState> scaffoldKey) {
     return AppBar(
       backgroundColor: Colors.white,
       elevation: 1,
@@ -75,9 +72,9 @@ class AttendanceScreen extends ConsumerWidget {
             child: Image.asset(
               'assets/images/profile.png',
               fit: BoxFit.contain,
-              errorBuilder: (_, __, ___) => CircleAvatar(
+              errorBuilder: (_, __, ___) => const CircleAvatar(
                 backgroundColor: AppTheme.accentBlue,
-                child: const Icon(Icons.person, color: Colors.white, size: 22),
+                child: Icon(Icons.person, color: Colors.white, size: 22),
               ),
             ),
           ),
