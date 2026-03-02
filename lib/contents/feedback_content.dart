@@ -186,7 +186,9 @@ class _FeedbackContentState extends State<FeedbackContent> {
                 const SizedBox(height: 20),
 
                 // Row 4: Subject Code + Staff Details
+                // Row 4: Subject Code + Staff Details (bottom-aligned for 2-line label)
                 _buildRow(
+                  crossAxisAlignment: CrossAxisAlignment.end,
                   left: _buildDropdownField(
                     label: 'Subject Code & Subject Name',
                     value: _subjectCode,
@@ -234,9 +236,13 @@ class _FeedbackContentState extends State<FeedbackContent> {
     );
   }
 
-  Widget _buildRow({required Widget left, required Widget right}) {
+  Widget _buildRow({
+    required Widget left,
+    required Widget right,
+    CrossAxisAlignment crossAxisAlignment = CrossAxisAlignment.start,
+  }) {
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: crossAxisAlignment,
       children: [
         Expanded(child: left),
         const SizedBox(width: 16),
