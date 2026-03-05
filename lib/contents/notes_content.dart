@@ -15,15 +15,13 @@ class _NotesContentState extends State<NotesContent> {
   int     _selectedSem  = 1;
   String? _selectedSubject;
   String? _selectedNotesType;
+  bool    _searched     = false;
 
-  // ── Data ───────────────────────────────────────────────────────────────────
-  static final List<String> _academicYears = List.generate(
-    13,
-    (i) {
-      final start = 2026 - i;
-      return '$start-${start + 1}';
-    },
-  );
+  // ── Static data ────────────────────────────────────────────────────────────
+  static final List<String> _academicYears = List.generate(13, (i) {
+    final start = 2026 - i;
+    return '$start-${start + 1}';
+  });
 
   static const Map<int, List<String>> _subjectsBySem = {
     1: ['CY4101-Engineering Mathematics I', 'CY4102-Engineering Physics',
@@ -54,31 +52,30 @@ class _NotesContentState extends State<NotesContent> {
     'Video Lectures',
   ];
 
-  // Mock notes result — replace with API
+  // Mock notes — replace with API response
   final List<Map<String, String>> _mockNotes = [
-    {'title': 'HCI Alan Dix.pdf',      'type': 'PDF'},
-    {'title': 'UNIT 4.docx.pdf',       'type': 'PDF'},
-    {'title': 'UNIT 2 NOTES',          'type': 'PDF'},
-    {'title': 'UNIT 3 NOTES',          'type': 'PDF'},
-    {'title': 'UNIT 4 NOTES',          'type': 'PDF'},
-    {'title': 'UNIT 5 NOTES',          'type': 'PDF'},
-    {'title': 'HCI Unit 1.pdf',        'type': 'PDF'},
-    {'title': 'HCI unit 2.pdf',        'type': 'PDF'},
-    {'title': 'Unit_3_Lex_Yacc',       'type': 'PDF'},
-    {'title': 'UNIT IV FDIP.pdf',      'type': 'PDF'},
-    {'title': 'Unit III FDIP.pptx',    'type': 'PPT'},
-    {'title': 'Unit IV part 1.pptx',   'type': 'PPT'},
-    {'title': 'Unit IV part 2.pptx',   'type': 'PPT'},
+    {'title': 'HCI Alan Dix.pdf',     'type': 'PDF'},
+    {'title': 'UNIT 4.docx.pdf',      'type': 'PDF'},
+    {'title': 'UNIT 2 NOTES',         'type': 'PDF'},
+    {'title': 'UNIT 3 NOTES',         'type': 'PDF'},
+    {'title': 'UNIT 4 NOTES',         'type': 'PDF'},
+    {'title': 'UNIT 5 NOTES',         'type': 'PDF'},
+    {'title': 'HCI Unit 1.pdf',       'type': 'PDF'},
+    {'title': 'HCI unit 2.pdf',       'type': 'PDF'},
+    {'title': 'Unit_3_Lex_Yacc',      'type': 'PDF'},
+    {'title': 'UNIT IV FDIP.pdf',     'type': 'PDF'},
+    {'title': 'Unit III FDIP.pptx',   'type': 'PPT'},
+    {'title': 'Unit IV part 1.pptx',  'type': 'PPT'},
+    {'title': 'Unit IV part 2.pptx',  'type': 'PPT'},
   ];
 
+  // ── Derived ────────────────────────────────────────────────────────────────
   List<String> get _subjects => _subjectsBySem[_selectedSem] ?? [];
 
   bool get _canSearch =>
       _selectedYear != null &&
       _selectedSubject != null &&
       _selectedNotesType != null;
-
-  bool _searched = false;
 
   // ── Build ──────────────────────────────────────────────────────────────────
   @override
@@ -88,7 +85,7 @@ class _NotesContentState extends State<NotesContent> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // White card
+          // ── White form card ──────────────────────────────────────────────
           Container(
             decoration: BoxDecoration(
               color: Colors.white,
@@ -104,7 +101,7 @@ class _NotesContentState extends State<NotesContent> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ── Title ──────────────────────────────────────────────────
+                // Title
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
                   child: Text(
@@ -118,92 +115,133 @@ class _NotesContentState extends State<NotesContent> {
                 ),
                 const Padding(
                   padding: EdgeInsets.only(top: 10),
-                  child: Divider(height: 1, thickness: 1, color: Color(0xFFE5E7EB)),
+                  child: Divider(
+                    height: 1,
+                    thickness: 1,
+                    color: Color(0xFFE5E7EB),
+                  ),
                 ),
 
-                // ── Form body ──────────────────────────────────────────────
+                // Form fields
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Academic Year
+
+                      // ── Academic Year ──────────────────────────────────
                       _fieldLabel('Academic Year:'),
                       const SizedBox(height: 8),
-                      _buildDropdown(
-                        width: 200,
-                        value: _selectedYear,
-                        hint: 'Select',
-                        items: _academicYears,
-                        onChanged: (v) => setState(() {
-                          _selectedYear    = v;
-                          _selectedSubject = null;
-                          _searched        = false;
+                      // LayoutBuilder so the dropdown never exceeds card width
+                      LayoutBuilder(
+                        builder: (context, constraints) {
+                          final dropW =
+                              (constraints.maxWidth * 0.55).clamp(140.0, 220.0);
+                          return SizedBox(
+                            width: dropW,
+                            child: _buildDropdown(
+                              value: _selectedYear,
+                              hint: 'Select',
+                              items: _academicYears,
+                              onChanged: (v) => setState(() {
+                                _selectedYear    = v;
+                                _selectedSubject = null;
+                                _searched        = false;
+                              }),
+                            ),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 20),
+
+                      // ── Sem chips (Wrap — never overflows) ────────────
+                      _fieldLabel('Sem :'),
+                      const SizedBox(height: 10),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: List.generate(8, (i) {
+                          final sem      = i + 1;
+                          final isActive = sem == _selectedSem;
+                          return GestureDetector(
+                            onTap: () => setState(() {
+                              _selectedSem     = sem;
+                              _selectedSubject = null;
+                              _searched        = false;
+                            }),
+                            child: Container(
+                              width: 36,
+                              height: 36,
+                              decoration: BoxDecoration(
+                                color: isActive
+                                    ? AppTheme.primaryDark
+                                    : Colors.transparent,
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(
+                                  color: isActive
+                                      ? AppTheme.primaryDark
+                                      : const Color(0xFFD1D5DB),
+                                  width: 1.5,
+                                ),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  '$sem',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    color: isActive
+                                        ? Colors.white
+                                        : AppTheme.primaryDark,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
                         }),
                       ),
                       const SizedBox(height: 20),
 
-                      // Sem chips
-                      _fieldLabel('Sem :'),
-                      const SizedBox(height: 10),
-                      _buildSemChips(),
-                      const SizedBox(height: 20),
+                      // ── Subject (full width) ───────────────────────────
+                      _fieldLabel('Subject:'),
+                      const SizedBox(height: 8),
+                      _buildDropdown(
+                        value: _selectedSubject,
+                        hint: _selectedYear == null
+                            ? 'Select academic year first'
+                            : 'Select',
+                        items: _subjects,
+                        onChanged: _selectedYear == null
+                            ? null
+                            : (v) => setState(() {
+                                  _selectedSubject   = v;
+                                  _selectedNotesType = null;
+                                  _searched          = false;
+                                }),
+                      ),
+                      const SizedBox(height: 16),
 
-                      // Subject + Notes Type (side by side)
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Subject
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                _fieldLabel('Subject:'),
-                                const SizedBox(height: 8),
-                                _buildDropdown(
-                                  value: _selectedSubject,
-                                  hint: 'Select',
-                                  items: _subjects,
-                                  onChanged: _selectedYear == null
-                                      ? null
-                                      : (v) => setState(() {
-                                            _selectedSubject = v;
-                                            _searched        = false;
-                                          }),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 24),
-
-                          // Notes Type
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                _fieldLabel('Notes Type:'),
-                                const SizedBox(height: 8),
-                                _buildDropdown(
-                                  value: _selectedNotesType,
-                                  hint: 'Select',
-                                  items: _notesTypes,
-                                  onChanged: _selectedSubject == null
-                                      ? null
-                                      : (v) => setState(() {
-                                            _selectedNotesType = v;
-                                            _searched          = false;
-                                          }),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
+                      // ── Notes Type (full width) ────────────────────────
+                      _fieldLabel('Notes Type:'),
+                      const SizedBox(height: 8),
+                      _buildDropdown(
+                        value: _selectedNotesType,
+                        hint: _selectedSubject == null
+                            ? 'Select subject first'
+                            : 'Select',
+                        items: _notesTypes,
+                        onChanged: _selectedSubject == null
+                            ? null
+                            : (v) => setState(() {
+                                  _selectedNotesType = v;
+                                  _searched          = false;
+                                }),
                       ),
                       const SizedBox(height: 24),
 
-                      // Search button
+                      // ── Search button ──────────────────────────────────
                       SizedBox(
-                        width: 160,
+                        width: double.infinity,
                         child: ElevatedButton(
                           onPressed: _canSearch
                               ? () => setState(() => _searched = true)
@@ -211,7 +249,8 @@ class _NotesContentState extends State<NotesContent> {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppTheme.accentBlue,
                             disabledBackgroundColor: AppTheme.borderColor,
-                            padding: const EdgeInsets.symmetric(vertical: 13),
+                            padding:
+                                const EdgeInsets.symmetric(vertical: 14),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
                             ),
@@ -235,65 +274,21 @@ class _NotesContentState extends State<NotesContent> {
             ),
           ),
 
-          // ── Results ─────────────────────────────────────────────────────
+          // ── Results / empty state ────────────────────────────────────────
           if (_searched) ...[
             const SizedBox(height: 20),
-            if (_mockNotes.isEmpty)
-              _emptyState(Icons.search_off_rounded, 'No notes found')
-            else
-              _buildFileTable(),
+            _mockNotes.isEmpty
+                ? _emptyState(Icons.search_off_rounded, 'No notes found')
+                : _buildFileTable(),
           ] else ...[
             const SizedBox(height: 32),
-            _emptyState(Icons.menu_book_rounded,
-                'Select all fields to browse notes'),
+            _emptyState(
+              Icons.menu_book_rounded,
+              'Select all fields to browse notes',
+            ),
           ],
         ],
       ),
-    );
-  }
-
-  // ── Sem chips ──────────────────────────────────────────────────────────────
-  Widget _buildSemChips() {
-    return Row(
-      children: List.generate(8, (i) {
-        final sem      = i + 1;
-        final isActive = sem == _selectedSem;
-
-        return Padding(
-          padding: const EdgeInsets.only(right: 8),
-          child: GestureDetector(
-            onTap: () => setState(() {
-              _selectedSem     = sem;
-              _selectedSubject = null;
-              _searched        = false;
-            }),
-            child: Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: isActive ? AppTheme.primaryDark : Colors.transparent,
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(
-                  color: isActive
-                      ? AppTheme.primaryDark
-                      : const Color(0xFFD1D5DB),
-                  width: 1.5,
-                ),
-              ),
-              child: Center(
-                child: Text(
-                  '$sem',
-                  style: GoogleFonts.poppins(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: isActive ? Colors.white : AppTheme.primaryDark,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        );
-      }),
     );
   }
 
@@ -303,11 +298,10 @@ class _NotesContentState extends State<NotesContent> {
     required List<String> items,
     required ValueChanged<String?>? onChanged,
     String hint = 'Select',
-    double? width,
   }) {
     final disabled = onChanged == null;
 
-    Widget dropdown = Container(
+    return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
         color: disabled ? const Color(0xFFF9FAFB) : Colors.white,
@@ -337,39 +331,42 @@ class _NotesContentState extends State<NotesContent> {
           dropdownColor: Colors.white,
           borderRadius: BorderRadius.circular(8),
           onChanged: onChanged,
+          // Prevent selected value text from overflowing
           selectedItemBuilder: (context) => items
-              .map((item) => Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      item,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.poppins(
-                        fontSize: 13,
-                        color: AppTheme.primaryDark,
-                      ),
+              .map(
+                (item) => Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    item,
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                    style: GoogleFonts.poppins(
+                      fontSize: 13,
+                      color: AppTheme.primaryDark,
                     ),
-                  ))
+                  ),
+                ),
+              )
               .toList(),
           items: items
-              .map((item) => DropdownMenuItem(
-                    value: item,
-                    child: Text(
-                      item,
-                      style: GoogleFonts.poppins(fontSize: 13),
-                    ),
-                  ))
+              .map(
+                (item) => DropdownMenuItem(
+                  value: item,
+                  child: Text(
+                    item,
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                    style: GoogleFonts.poppins(fontSize: 13),
+                  ),
+                ),
+              )
               .toList(),
         ),
       ),
     );
-
-    if (width != null) {
-      return SizedBox(width: width, child: dropdown);
-    }
-    return dropdown;
   }
 
-  // ── File table (matches screenshot: dark header + blue link rows) ──────────
+  // ── File table ─────────────────────────────────────────────────────────────
   Widget _buildFileTable() {
     return Container(
       decoration: BoxDecoration(
@@ -388,11 +385,12 @@ class _NotesContentState extends State<NotesContent> {
         borderRadius: BorderRadius.circular(8),
         child: Column(
           children: [
-            // Dark navy header
+            // Dark navy header row
             Container(
               width: double.infinity,
               color: AppTheme.primaryDark,
-              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+              padding:
+                  const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
               child: Text(
                 'File Name',
                 style: GoogleFonts.poppins(
@@ -402,9 +400,10 @@ class _NotesContentState extends State<NotesContent> {
                 ),
               ),
             ),
+
             // File rows
             ...List.generate(_mockNotes.length, (i) {
-              final note = _mockNotes[i];
+              final note   = _mockNotes[i];
               final isEven = i % 2 == 0;
               return GestureDetector(
                 onTap: () {
@@ -412,18 +411,21 @@ class _NotesContentState extends State<NotesContent> {
                 },
                 child: Container(
                   width: double.infinity,
-                  color: isEven ? Colors.white : const Color(0xFFF8F9FF),
+                  color:
+                      isEven ? Colors.white : const Color(0xFFF8F9FF),
                   padding: const EdgeInsets.symmetric(
-                      vertical: 11, horizontal: 16),
+                    vertical: 11,
+                    horizontal: 16,
+                  ),
                   child: Row(
                     children: [
-                      // File type icon
                       _fileIcon(note['type'] ?? 'PDF'),
                       const SizedBox(width: 10),
-                      // Filename as blue link
                       Expanded(
                         child: Text(
                           note['title']!,
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
                           style: GoogleFonts.poppins(
                             fontSize: 13,
                             color: AppTheme.primaryDark,
@@ -433,7 +435,7 @@ class _NotesContentState extends State<NotesContent> {
                           ),
                         ),
                       ),
-                      // Download icon
+                      const SizedBox(width: 8),
                       Icon(
                         Icons.download_rounded,
                         size: 18,
@@ -450,27 +452,36 @@ class _NotesContentState extends State<NotesContent> {
     );
   }
 
+  // ── File type badge ────────────────────────────────────────────────────────
   Widget _fileIcon(String type) {
-    final isPdf  = type.toUpperCase() == 'PDF';
-    final isPpt  = type.toUpperCase() == 'PPT' || type.toUpperCase() == 'PPTX';
-    final isDoc  = type.toUpperCase() == 'DOC' || type.toUpperCase() == 'DOCX';
-
+    final t = type.toUpperCase();
     Color bg;
     Color fg;
-    if (isPdf)       { bg = const Color(0xFFFFEEEE); fg = Colors.red.shade600; }
-    else if (isPpt)  { bg = const Color(0xFFFFF3EE); fg = Colors.orange.shade700; }
-    else if (isDoc)  { bg = const Color(0xFFEEF3FF); fg = Colors.blue.shade700; }
-    else             { bg = const Color(0xFFEEF5EE); fg = Colors.green.shade700; }
+
+    if (t == 'PDF') {
+      bg = const Color(0xFFFFEEEE);
+      fg = Colors.red.shade600;
+    } else if (t == 'PPT' || t == 'PPTX') {
+      bg = const Color(0xFFFFF3EE);
+      fg = Colors.orange.shade700;
+    } else if (t == 'DOC' || t == 'DOCX') {
+      bg = const Color(0xFFEEF3FF);
+      fg = Colors.blue.shade700;
+    } else {
+      bg = const Color(0xFFEEF5EE);
+      fg = Colors.green.shade700;
+    }
 
     return Container(
       width: 32,
       height: 32,
-      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(5)),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(5),
+      ),
       child: Center(
         child: Text(
-          type.toUpperCase().length > 3
-              ? type.toUpperCase().substring(0, 3)
-              : type.toUpperCase(),
+          t.length > 3 ? t.substring(0, 3) : t,
           style: GoogleFonts.poppins(
             fontSize: 9,
             fontWeight: FontWeight.w800,

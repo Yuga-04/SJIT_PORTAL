@@ -4,10 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_theme.dart';
 import '../widgets/nav_drawer.dart';
-import '../contents/notes_content.dart';
+import '../contents/fee_content.dart';
 
-class NotesScreen extends ConsumerWidget {
-  const NotesScreen({super.key});
+class FeeScreen extends ConsumerWidget {
+  const FeeScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -26,8 +26,8 @@ class NotesScreen extends ConsumerWidget {
       appBar: _buildAppBar(scaffoldKey),
       drawer: const NavDrawer(),
       body: const SafeArea(
-        top: false, // AppBar already handles top safe area
-        child: NotesContent(),
+        top: false,
+        child: FeeContent(),
       ),
     );
   }
@@ -54,7 +54,7 @@ class NotesScreen extends ConsumerWidget {
       actions: [
         Center(
           child: Text(
-            'Notes',
+            'Fee',
             style: GoogleFonts.poppins(
               fontSize: 17,
               fontWeight: FontWeight.w700,
