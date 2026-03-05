@@ -13,6 +13,7 @@ import '../contents/home_content.dart'; // ← split file
 import '../contents/profile_content.dart'; // ← split file
 import '../contents/marks_content.dart'; // ← split file
 import '../contents/attendance_content.dart'; // ← split file
+import '../contents/fee_content.dart'; // ← split file
 
 // ── Current active screen name provider ─────────────────────────────────────
 final activeScreenProvider = StateProvider<String>((ref) => 'Home');
@@ -106,17 +107,19 @@ class HomeScreen extends ConsumerWidget {
   Widget _buildBody(String screen) {
     switch (screen) {
       case 'Home':
-        return const HomeContent(); // ← home_content.dart
+        return const HomeContent();
       case 'Profile':
-        return const ProfileContent(); // ← profile_content.dart
+        return const ProfileContent();
       case 'Marks':
-        return const MarksContent(); // ← marks_content.dart
+        return const MarksContent();
       case 'Attendance':
-        return const AttendanceContent(); // ← attendance_content.dart
+        return const AttendanceContent();
       case 'Notes':
-        return const NotesContent(); // ← notes_content.dart
+        return const NotesContent();
       case 'Feedback':
-        return const FeedbackContent(); // ← feedback_content.dart
+        return const FeedbackContent();
+      case 'Fee':
+        return const FeeContent(); // ← use FeeContent, not FeeScreen
       default:
         return _ComingSoonContent(screen);
     }
